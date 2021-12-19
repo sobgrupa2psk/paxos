@@ -29,7 +29,7 @@ public class ServerDetails {
 
 	public void incrementTerm() {
 		long nextTerm = calculateNextTerm();
-		System.out.printf("New term: %d", nextTerm);
+		System.out.printf("New term: %d%n", nextTerm);
 		term.set(nextTerm);
 	}
 

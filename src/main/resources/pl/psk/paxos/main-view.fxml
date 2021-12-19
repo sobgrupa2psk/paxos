@@ -11,14 +11,24 @@
    <children>
       <TableView fx:id="serverTable" editable="true" prefHeight="400.0" prefWidth="600.0">
         <columns>
-          <TableColumn id="tableColumnName" prefWidth="75.0" text="Server">
-              <cellValueFactory>
-                  <PropertyValueFactory property="port" />
-              </cellValueFactory>
-          </TableColumn>
+            <TableColumn id="tableColumnName" prefWidth="75.0" text="Port">
+                <cellValueFactory>
+                    <PropertyValueFactory property="port" />
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn id="tableColumnName" prefWidth="75.0" text="Term">
+                <cellValueFactory>
+                    <PropertyValueFactory property="term" />
+                </cellValueFactory>
+            </TableColumn>
             <TableColumn id="tableColumniAmLeader" minWidth="75.0" prefWidth="75.0" text="is Leader">
                 <cellValueFactory>
                     <PropertyValueFactory property="iAmLeader" />
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn id="tableColumniAmLeader" minWidth="75.0" prefWidth="75.0" text="beat count">
+                <cellValueFactory>
+                    <PropertyValueFactory property="beatCount" />
                 </cellValueFactory>
             </TableColumn>
           <TableColumn id="tableColumnKillButton" minWidth="75.0" prefWidth="75.0" text="Kill">

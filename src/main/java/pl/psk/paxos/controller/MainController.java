@@ -15,15 +15,19 @@ public class MainController {
 	private TableView<Server> serverTable;
 
 	@FXML
-	public void initialize() {
+	public void initialize() throws InterruptedException {
+
 		serverTable.setItems(serverList);
+
 		ExecutorService executorService = Executors.newFixedThreadPool(6);
-		for (int i = 8080; i < 8086; i++) {
-			Server server = new Server(i, serverList);
+		for (int port = 8080; port < 8086; port++) {
+			Server server = new Server(port, serverList);
 			serverList.add(server);
 			server.initServerDetails();
 			executorService.submit(server);
+			server.setThread(executorService);
 		}
+
 	}
 
 }
