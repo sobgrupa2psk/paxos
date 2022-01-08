@@ -1,5 +1,6 @@
 package pl.psk.paxos.model;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javafx.collections.ObservableList;
