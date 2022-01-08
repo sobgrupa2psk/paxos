@@ -2,6 +2,7 @@ package pl.psk.paxos.controller;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,12 +21,13 @@ public class MainController {
 		serverTable.setItems(serverList);
 
 		ExecutorService executorService = Executors.newFixedThreadPool(6);
-		for (int port = 8080; port < 8086; port++) {
+		for (int port = 0; port < 6; port++) {
 			Server server = new Server(port, serverList);
 			serverList.add(server);
 			server.initServerDetails();
-			executorService.submit(server);
-			server.setThread(executorService);
+
+			Future<?> submit = executorService.submit(server);
+			server.setThread(submit);
 		}
 
 	}

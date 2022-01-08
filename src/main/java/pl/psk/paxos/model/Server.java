@@ -2,15 +2,17 @@ package pl.psk.paxos.model;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
-
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
-import javafx.scene.control.TableView;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class Server implements Runnable {
@@ -22,8 +24,8 @@ public class Server implements Runnable {
 	private LongProperty term;
 	private IntegerProperty beatCount;
 	private Button killButton;
-	private ExecutorService executorService;
 	private Timer timer;
+	private Future<?> thread;
 
 	public Server(int port, ObservableList<Server> serverList) {
 		this.port = port;
@@ -35,8 +37,8 @@ public class Server implements Runnable {
 		killButton = new Button("Kill");
 		killButton.setOnAction(e -> {
 			System.out.println("Zabijam serwer!");
-			this.executorService.shutdown();
 			this.serverList.remove(this);
+			thread.cancel(true);
 			this.timer.cancel();
 		});
 	}
@@ -45,36 +47,36 @@ public class Server implements Runnable {
 		return iAmLeader.get();
 	}
 
-	public BooleanProperty iAmLeaderProperty() {
-		return iAmLeader;
-	}
-
 	public void setiAmLeader(boolean iAmLeader) {
 		this.iAmLeader.set(iAmLeader);
+	}
+
+	public BooleanProperty iAmLeaderProperty() {
+		return iAmLeader;
 	}
 
 	public int getBeatCount() {
 		return beatCount.get();
 	}
 
-	public IntegerProperty beatCountProperty() {
-		return beatCount;
-	}
-
 	public void setBeatCount(int beatCount) {
 		this.beatCount.set(beatCount);
+	}
+
+	public IntegerProperty beatCountProperty() {
+		return beatCount;
 	}
 
 	public long getTerm() {
 		return term.get();
 	}
 
-	public LongProperty termProperty() {
-		return term;
-	}
-
 	public void setTerm(long term) {
 		this.term.set(term);
+	}
+
+	public LongProperty termProperty() {
+		return term;
 	}
 
 	public void initServerDetails() {
@@ -93,46 +95,41 @@ public class Server implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			Thread.sleep(1000L);
-		} catch (InterruptedException e) {
-			e.printStackTrace(); //todo
-		}
-
-		triggerVote();
-
 		TimerTask task = new TimerTask() {
 			public void run() {
 				System.out.printf("Beat!: %s, %s, %s %n ", serverDetails, beatCount, iAmLeader);
 				if (iAmLeader.getValue()) {
-					otherServersStream().forEach(otherServer -> otherServer.hearthBeat());
+					otherServersStream().forEach(Server::hearthBeat);
 					beatCount.setValue(0);
 				} else {
-					beatCount.setValue(beatCount.getValue()-1);
+					beatCount.setValue(beatCount.getValue() - 1);
 					if (beatCount.getValue() < 0) {
 						triggerVote();
-						beatCount.setValue(beatCount.getValue()+2); // celowe zwiekszenie
+						beatCount.setValue(beatCount.getValue() + 1); // celowe zwiekszenie
 					}
 				}
 				term.setValue(serverDetails.getTermValue());
 			}
 		};
 		this.timer = new Timer("Timer" + serverDetails.getIdValue(), true);
-		this.timer.scheduleAtFixedRate(task, 5000, 5000);
+		this.timer.scheduleAtFixedRate(task, 1000, 1000);
 
-		//todo Zabijanie serwera
+		//todo term
 		//todo wprowadzenia błędu (3)
 		// Jakis UI troche wiecej
 	}
 
-	public void setThread(ExecutorService executorService) {
-		this.executorService = executorService;
+	public void setThread(Future<?> executorService) {
+		this.thread = executorService;
 	}
 
 	private void triggerVote() {
 		if (mayIBeLeader()) {
-			iAmLeader.setValue(otherServersStream().map(otherServer -> otherServer.considerCandidate(this.serverDetails)).allMatch(votingResult -> votingResult.equals(serverDetails)));
-			System.out.printf("Jestem serverem %s , kandydowałem na lidera. I wynik to: %s%n", serverDetails, iAmLeader);
+			boolean iAmLeader = otherServersStream()
+					.map(otherServer -> otherServer.considerCandidate(this.serverDetails))
+					.allMatch(votingResult -> votingResult.equals(serverDetails));
+			this.iAmLeader.setValue(iAmLeader);
+			System.out.printf("Jestem serverem %s , kandydowałem na lidera. I wynik to: %s%n", serverDetails, this.iAmLeader);
 		}
 	}
 
@@ -145,10 +142,13 @@ public class Server implements Runnable {
 	}
 
 	public ServerDetails considerCandidate(ServerDetails otherServerID) {
-		if (mayIBeLeader() && iAmBetterLeader(otherServerID)) {
-			System.out.println("A am better leader than you");
-			return this.serverDetails;
+		if(this.serverDetails.getTermValue() < otherServerID.getTermValue()){
+			this.serverDetails.incrementTerm();
+			return otherServerID;
 		}
-		return otherServerID;
+		if(this.serverDetails.getTermValue() == otherServerID.getTermValue()){
+			return otherServerID;
+		}
+		return this.serverDetails;
 	}
 }

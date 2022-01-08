@@ -1,6 +1,5 @@
 package pl.psk.paxos.model;
 
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javafx.collections.ObservableList;
@@ -14,16 +13,11 @@ public class ServerDetails {
 	private final AtomicLong term = new AtomicLong(0);
 	private final AtomicLong commitIndex = new AtomicLong(0);
 
-	private final int serverPort;
-
 	@ToString.Exclude()
 	private ObservableList<Server> serverList;
 
-	public ServerDetails(int serverPort, ObservableList<Server> serverList) {
-		this.serverPort = serverPort;
+	public ServerDetails(int serverId, ObservableList<Server> serverList) {
 		this.serverList = serverList;
-
-		int serverId = calculateServerId(serverPort);
 		id.set(serverId);
 		incrementTerm();
 	}
@@ -42,10 +36,6 @@ public class ServerDetails {
 			currentTerm++;
 		}
 		return currentTerm;
-	}
-
-	public int calculateServerId(int port) {
-		return port % countServers();
 	}
 
 	private int countServers() {
