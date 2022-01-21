@@ -9,7 +9,7 @@
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml"
                                                                                                                                        fx:controller="pl.psk.paxos.controller.MainController">
    <children>
-      <TableView fx:id="serverTable" editable="true" prefHeight="400.0" prefWidth="600.0">
+      <TableView fx:id="serverTable" editable="true" prefHeight="400.0" prefWidth="1000.0">
         <columns>
             <TableColumn id="tableColumnName" prefWidth="75.0" text="Port">
                 <cellValueFactory>
@@ -31,11 +31,21 @@
                     <PropertyValueFactory property="beatCount" />
                 </cellValueFactory>
             </TableColumn>
-          <TableColumn id="tableColumnKillButton" minWidth="75.0" prefWidth="75.0" text="Kill">
-              <cellValueFactory>
-                  <PropertyValueFactory property="killButton" />
-              </cellValueFactory>
-          </TableColumn>
+            <TableColumn id="tableColumnKillButton" minWidth="75.0" prefWidth="75.0" text="Kill">
+                <cellValueFactory>
+                    <PropertyValueFactory property="killButton" />
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn id="tableColumnException1Button" minWidth="105.0" prefWidth="75.0" text="Ex 1">
+                <cellValueFactory>
+                    <PropertyValueFactory property="ex1Button" />
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn id="tableColumnException2Button" minWidth="125.0" prefWidth="75.0" text="Ex 2">
+                <cellValueFactory>
+                    <PropertyValueFactory property="ex2Button" />
+                </cellValueFactory>
+            </TableColumn>
         </columns>
       </TableView>
    </children>

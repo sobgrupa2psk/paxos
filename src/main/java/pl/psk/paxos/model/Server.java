@@ -24,6 +24,8 @@ public class Server implements Runnable {
 	private LongProperty term;
 	private IntegerProperty beatCount;
 	private Button killButton;
+	private Button ex1Button;
+	private Button ex2Button;
 	private Timer timer;
 	private Future<?> thread;
 
@@ -35,11 +37,34 @@ public class Server implements Runnable {
 		this.term = new SimpleLongProperty(0);
 
 		killButton = new Button("Kill");
+		ex1Button = new Button("Trigger Vote");
+		ex2Button = new Button("Set beatcount 10");
+
 		killButton.setOnAction(e -> {
 			System.out.println("Zabijam serwer!");
 			this.serverList.remove(this);
 			thread.cancel(true);
 			this.timer.cancel();
+		});
+
+
+		ex1Button.setOnAction(e -> {
+			System.out.println("EX 1!");
+			try {
+				triggerVote();
+			} catch (Exception exception) {
+				System.out.println("Something went wrong." + exception.getMessage());
+			}
+		});
+
+
+		ex2Button.setOnAction(e -> {
+			System.out.println("EX 2!");
+			try {
+				this.setBeatCount(10);
+			} catch (Exception exception) {
+				System.out.println("Something went wrong." + exception.getMessage());
+			}
 		});
 	}
 
@@ -59,7 +84,10 @@ public class Server implements Runnable {
 		return beatCount.get();
 	}
 
-	public void setBeatCount(int beatCount) {
+	public void setBeatCount(int beatCount) throws Exception {
+		if (beatCount > 4) {
+			throw new Exception("beatCount over 4");
+		}
 		this.beatCount.set(beatCount);
 	}
 
@@ -104,7 +132,11 @@ public class Server implements Runnable {
 				} else {
 					beatCount.setValue(beatCount.getValue() - 1);
 					if (beatCount.getValue() < 0) {
-						triggerVote();
+						try {
+							triggerVote();
+						} catch (Exception e) {
+							System.out.println("Something went wrong." + e.getMessage());
+						}
 						beatCount.setValue(beatCount.getValue() + 1); // celowe zwiekszenie
 					}
 				}
@@ -115,15 +147,19 @@ public class Server implements Runnable {
 		this.timer.scheduleAtFixedRate(task, 1000, 1000);
 
 		//todo term
-		//todo wprowadzenia błędu (3)
-		// Jakis UI troche wiecej
 	}
 
 	public void setThread(Future<?> executorService) {
 		this.thread = executorService;
 	}
 
-	private void triggerVote() {
+
+	private void triggerVote() throws Exception {
+
+		if (beatCount.getValue() > 0) {
+			throw new Exception("Beat count over 0 exception");
+		}
+
 		if (mayIBeLeader()) {
 			boolean iAmLeader = otherServersStream()
 					.map(otherServer -> otherServer.considerCandidate(this.serverDetails))
