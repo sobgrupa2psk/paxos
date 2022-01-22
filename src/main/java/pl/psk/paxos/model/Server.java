@@ -23,6 +23,7 @@ public class Server implements Runnable {
 	private BooleanProperty iAmLeader;
 	private LongProperty term;
 	private IntegerProperty beatCount;
+	private IntegerProperty noLeaderCount;
 	private Button killButton;
 	private Button ex1Button;
 	private Button ex2Button;
@@ -34,6 +35,7 @@ public class Server implements Runnable {
 		this.serverList = serverList;
 		this.iAmLeader = new SimpleBooleanProperty(false);
 		this.beatCount = new SimpleIntegerProperty(0);
+		this.noLeaderCount = new SimpleIntegerProperty(0);
 		this.term = new SimpleLongProperty(0);
 
 		killButton = new Button("Kill");
@@ -95,6 +97,18 @@ public class Server implements Runnable {
 		return beatCount;
 	}
 
+	public int getNoLeaderCount() {
+		return noLeaderCount.get();
+	}
+
+	public void setNoLeaderCount(int noLeaderCount) throws Exception {
+		this.noLeaderCount.set(noLeaderCount);
+	}
+
+	public IntegerProperty noLeaderCountProperty() {
+		return noLeaderCount;
+	}
+
 	public long getTerm() {
 		return term.get();
 	}
@@ -121,15 +135,19 @@ public class Server implements Runnable {
 		return otherServerID.getTermValue() > this.serverDetails.getTermValue();
 	}
 
+
+
 	@Override
 	public void run() {
 		TimerTask task = new TimerTask() {
 			public void run() {
+
 				System.out.printf("Beat!: %s, %s, %s %n ", serverDetails, beatCount, iAmLeader);
 				if (iAmLeader.getValue()) {
-					otherServersStream().forEach(Server::hearthBeat);
+					otherServersStream().forEach(Server::heartBeat);
 					beatCount.setValue(0);
 				} else {
+					serverDetails.incrementTerm();
 					beatCount.setValue(beatCount.getValue() - 1);
 					if (beatCount.getValue() < 0) {
 						try {
@@ -146,7 +164,6 @@ public class Server implements Runnable {
 		this.timer = new Timer("Timer" + serverDetails.getIdValue(), true);
 		this.timer.scheduleAtFixedRate(task, 1000, 1000);
 
-		//todo term
 	}
 
 	public void setThread(Future<?> executorService) {
@@ -166,10 +183,21 @@ public class Server implements Runnable {
 					.allMatch(votingResult -> votingResult.equals(serverDetails));
 			this.iAmLeader.setValue(iAmLeader);
 			System.out.printf("Jestem serverem %s , kandydowałem na lidera. I wynik to: %s%n", serverDetails, this.iAmLeader);
+			if (iAmLeader==true) {
+				otherServersStream().forEach(Server::youAreNotLeaderAnyMore);
+			}
 		}
 	}
 
-	private void hearthBeat() {
+	private void youAreNotLeaderAnyMore() {
+		this.iAmLeader.setValue(false);
+	}
+
+	private boolean areYouLeader() {
+		return this.iAmLeader.getValue();
+	}
+
+	private void heartBeat() {
 		beatCount.setValue(4);
 	}
 
